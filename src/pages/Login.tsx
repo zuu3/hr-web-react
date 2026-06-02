@@ -71,7 +71,7 @@ export const Login = () => {
     setServerError('');
     try {
       const res = await authApi.login(data);
-      setAuth(res.access_token, res.user);
+      setAuth(res.access_token, res.user, res.refresh_token);
       navigate('/dashboard');
     } catch {
       setServerError('이메일 또는 비밀번호가 올바르지 않습니다.');

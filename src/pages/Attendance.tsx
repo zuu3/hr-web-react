@@ -3,11 +3,12 @@ import styled from '@emotion/styled';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { MapPin } from 'lucide-react';
-import { attendanceApi } from '../api/attendance';
+import { MapPin, Clock } from 'lucide-react';
+import { attendanceApi, type AttendanceRecord } from '../api/attendance';
 import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { Input, InputWrapper, Label } from '../components/ui/Input';
 import { StatusBadge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { color, font, bp } from '../styles/tokens';
@@ -114,6 +115,46 @@ const SectionTitle = styled.h2`
   letter-spacing: -0.3px;
 `;
 
+const Modal = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+`;
+
+const ModalBox = styled.div`
+  background: ${color.surface.white};
+  border-radius: 12px;
+  padding: 24px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const ModalTitle = styled.h3`
+  font-family: ${font.family};
+  font-size: ${font.size.md};
+  font-weight: 700;
+  color: ${color.ink[96]};
+  margin: 0;
+`;
+
+const ActionBtn = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${color.ink[40]};
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  &:hover { color: ${color.ink[100]}; }
+`;
+
 const Toast = styled.div<{ type: 'success' | 'error' }>`
   font-family: ${font.family};
   font-size: ${font.size.base};
@@ -127,6 +168,8 @@ const Toast = styled.div<{ type: 'success' | 'error' }>`
 export const Attendance = () => {
   const qc = useQueryClient();
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [tcTarget, setTcTarget] = useState<AttendanceRecord | null>(null);
+  const [tcForm, setTcForm] = useState({ work_time: '', travel_time: '', wait_time: '', memo: '' });
 
   const showToast = (msg: string, type: 'success' | 'error') => {
     setToast({ msg, type });
@@ -175,12 +218,65 @@ export const Attendance = () => {
     onError: () => showToast('퇴근 기록에 실패했습니다.', 'error'),
   });
 
+  const tcMut = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: { work_time: number; travel_time: number; wait_time: number; memo?: string } }) =>
+      attendanceApi.timeClassification(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['attendance'] });
+      setTcTarget(null);
+      showToast('시간 분류가 저장되었습니다.', 'success');
+    },
+    onError: () => showToast('시간 분류 저장에 실패했습니다.', 'error'),
+  });
+
   const timeStr = format(now, 'HH:mm');
   const dateStr = format(now, 'yyyy년 M월 d일 (EEE)', { locale: ko });
 
   return (
     <>
       <Header title="출퇴근" />
+
+      {tcTarget && (
+        <Modal onClick={() => setTcTarget(null)}>
+          <ModalBox onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>시간 분류 — {format(new Date(tcTarget.date), 'M월 d일 (EEE)', { locale: ko })}</ModalTitle>
+            <InputWrapper>
+              <Label>작업 시간 (분)</Label>
+              <Input type="number" min={0} value={tcForm.work_time}
+                onChange={(e) => setTcForm((f) => ({ ...f, work_time: e.target.value }))} />
+            </InputWrapper>
+            <InputWrapper>
+              <Label>이동 시간 (분)</Label>
+              <Input type="number" min={0} value={tcForm.travel_time}
+                onChange={(e) => setTcForm((f) => ({ ...f, travel_time: e.target.value }))} />
+            </InputWrapper>
+            <InputWrapper>
+              <Label>대기 시간 (분)</Label>
+              <Input type="number" min={0} value={tcForm.wait_time}
+                onChange={(e) => setTcForm((f) => ({ ...f, wait_time: e.target.value }))} />
+            </InputWrapper>
+            <InputWrapper>
+              <Label>메모 (선택)</Label>
+              <Input type="text" value={tcForm.memo}
+                onChange={(e) => setTcForm((f) => ({ ...f, memo: e.target.value }))} />
+            </InputWrapper>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button
+                onClick={() => tcMut.mutate({ id: tcTarget.id, data: {
+                  work_time: Number(tcForm.work_time) || 0,
+                  travel_time: Number(tcForm.travel_time) || 0,
+                  wait_time: Number(tcForm.wait_time) || 0,
+                  memo: tcForm.memo || undefined,
+                }})}
+                disabled={tcMut.isPending}
+              >
+                {tcMut.isPending ? '저장 중...' : '저장'}
+              </Button>
+              <Button variant="secondary" onClick={() => setTcTarget(null)}>취소</Button>
+            </div>
+          </ModalBox>
+        </Modal>
+      )}
 
       <TopRow>
         <CheckCard>
@@ -234,6 +330,7 @@ export const Attendance = () => {
                   <Th>퇴근</Th>
                   <Th>근무시간</Th>
                   <Th>상태</Th>
+                  <Th></Th>
                 </tr>
               </thead>
               <tbody>
@@ -247,6 +344,16 @@ export const Attendance = () => {
                       <Td>{r.check_out ?? '—'}</Td>
                       <Td>{whStr}</Td>
                       <Td><StatusBadge status={r.status} /></Td>
+                      <Td>
+                        {r.check_out && (
+                          <ActionBtn onClick={() => {
+                            setTcTarget(r);
+                            setTcForm({ work_time: '', travel_time: '', wait_time: '', memo: '' });
+                          }}>
+                            <Clock size={14} strokeWidth={1.5} />
+                          </ActionBtn>
+                        )}
+                      </Td>
                     </tr>
                   );
                 })}

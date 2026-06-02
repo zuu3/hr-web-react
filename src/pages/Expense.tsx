@@ -1,11 +1,12 @@
+import { useState } from 'react';
 import styled from '@emotion/styled';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Trash2, Download } from 'lucide-react';
-import { utils, writeFileXLSX } from 'xlsx';
-import { expenseApi, type ExpensePayload, type ExpenseCategory } from '../api/expense';
+import { Trash2, Download, Pencil } from 'lucide-react';
+import { expenseApi, type ExpensePayload, type ExpenseCategory, type ExpenseRecord } from '../api/expense';
+import { exportApi } from '../api/export';
 import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -86,7 +87,7 @@ const TotalRow = styled.tr`
   td { font-weight: 700 !important; border-bottom: none; }
 `;
 
-const DeleteBtn = styled.button`
+const ActionBtn = styled.button`
   background: none;
   border: none;
   cursor: pointer;
@@ -95,7 +96,24 @@ const DeleteBtn = styled.button`
   border-radius: 4px;
   display: flex;
   align-items: center;
+  &:hover { color: ${color.ink[100]}; }
+`;
+
+const DeleteBtn = styled(ActionBtn)`
   &:hover { color: ${color.status.error}; }
+`;
+
+const EditModeBar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(29,29,31,0.04);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-family: ${font.family};
+  font-size: ${font.size.sm};
+  color: ${color.ink[72]};
 `;
 
 const categoryLabel: Record<ExpenseCategory, string> = {
@@ -108,19 +126,30 @@ const categoryLabel: Record<ExpenseCategory, string> = {
 
 export const Expense = () => {
   const qc = useQueryClient();
+  const [editTarget, setEditTarget] = useState<ExpenseRecord | null>(null);
 
   const { data: records = [] } = useQuery({
     queryKey: ['expense', year, month],
     queryFn: () => expenseApi.list({ year, month }),
   });
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } =
     useForm<ExpensePayload>({ defaultValues: { date: format(now, 'yyyy-MM-dd'), category: 'transport' } });
 
   const createMut = useMutation({
     mutationFn: expenseApi.create,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['expense'] });
+      reset({ date: format(now, 'yyyy-MM-dd'), category: 'transport' });
+    },
+  });
+
+  const updateMut = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<ExpensePayload> }) =>
+      expenseApi.update(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['expense'] });
+      setEditTarget(null);
       reset({ date: format(now, 'yyyy-MM-dd'), category: 'transport' });
     },
   });
@@ -132,17 +161,34 @@ export const Expense = () => {
 
   const total = records.reduce((s, r) => s + r.amount, 0);
 
-  const exportXlsx = () => {
-    const rows = records.map((r) => ({
-      날짜: r.date,
-      항목: categoryLabel[r.category],
-      금액: r.amount,
-      메모: r.description ?? '',
-    }));
-    const ws = utils.json_to_sheet(rows);
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, '지출내역');
-    writeFileXLSX(wb, `지출내역_${year}${String(month).padStart(2, '0')}.xlsx`);
+  const startEdit = (r: ExpenseRecord) => {
+    setEditTarget(r);
+    setValue('date', r.date);
+    setValue('category', r.category);
+    setValue('amount', r.amount);
+    setValue('description', r.description ?? '');
+  };
+
+  const cancelEdit = () => {
+    setEditTarget(null);
+    reset({ date: format(now, 'yyyy-MM-dd'), category: 'transport' });
+  };
+
+  const onSubmit = (d: ExpensePayload) => {
+    if (editTarget) {
+      updateMut.mutate({ id: editTarget.id, data: d });
+    } else {
+      createMut.mutate(d);
+    }
+  };
+
+  const isPending = createMut.isPending || updateMut.isPending;
+
+  const handleExport = () => {
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    exportApi.expenses({ start_date: startDate, end_date: endDate });
   };
 
   return (
@@ -151,8 +197,14 @@ export const Expense = () => {
 
       <Grid>
         <Card>
-          <FormTitle>지출 입력</FormTitle>
-          <form onSubmit={handleSubmit((d) => createMut.mutate(d))}>
+          <FormTitle>{editTarget ? '지출 수정' : '지출 입력'}</FormTitle>
+          {editTarget && (
+            <EditModeBar>
+              <span>수정 중: {format(new Date(editTarget.date), 'M월 d일')} {categoryLabel[editTarget.category]}</span>
+              <ActionBtn onClick={cancelEdit} type="button" style={{ fontSize: '12px', padding: '2px 8px' }}>취소</ActionBtn>
+            </EditModeBar>
+          )}
+          <form onSubmit={handleSubmit(onSubmit)}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <InputWrapper>
                 <Label htmlFor="date">날짜</Label>
@@ -192,8 +244,8 @@ export const Expense = () => {
                 <Input id="description" type="text" placeholder="메모 입력" {...register('description')} />
               </InputWrapper>
 
-              <Button type="submit" disabled={isSubmitting || createMut.isPending} style={{ marginTop: 4 }}>
-                {createMut.isPending ? '저장 중...' : '저장'}
+              <Button type="submit" disabled={isSubmitting || isPending} style={{ marginTop: 4 }}>
+                {isPending ? '저장 중...' : editTarget ? '수정 완료' : '저장'}
               </Button>
             </div>
           </form>
@@ -202,7 +254,7 @@ export const Expense = () => {
         <Card>
           <SectionHeader>
             <SectionTitle>이번 달 지출 내역</SectionTitle>
-            <Button variant="secondary" size="sm" onClick={exportXlsx} type="button">
+            <Button variant="secondary" size="sm" onClick={handleExport} type="button">
               <Download size={13} strokeWidth={1.5} />
               엑셀 다운로드
             </Button>
@@ -229,9 +281,14 @@ export const Expense = () => {
                     <Td>{r.amount.toLocaleString()}원</Td>
                     <Td>{r.description ?? '—'}</Td>
                     <Td>
-                      <DeleteBtn onClick={() => deleteMut.mutate(r.id)}>
-                        <Trash2 size={14} strokeWidth={1.5} />
-                      </DeleteBtn>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <ActionBtn onClick={() => startEdit(r)}>
+                          <Pencil size={14} strokeWidth={1.5} />
+                        </ActionBtn>
+                        <DeleteBtn onClick={() => deleteMut.mutate(r.id)}>
+                          <Trash2 size={14} strokeWidth={1.5} />
+                        </DeleteBtn>
+                      </div>
                     </Td>
                   </tr>
                 ))}

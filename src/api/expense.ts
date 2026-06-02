@@ -34,6 +34,9 @@ export const expenseApi = {
   create: (data: ExpensePayload) =>
     client.post<ExpenseRecord>('/expense', data).then((r) => r.data),
 
+  update: (id: number, data: Partial<ExpensePayload>) =>
+    client.put<ExpenseRecord>(`/expense/${id}`, data).then((r) => r.data),
+
   delete: (id: number) =>
     client.delete(`/expense/${id}`),
 };

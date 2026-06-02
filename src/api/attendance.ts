@@ -44,4 +44,7 @@ export const attendanceApi = {
 
   today: () =>
     client.get<AttendanceRecord | null>('/attendance/today').then((r) => r.data),
+
+  timeClassification: (id: number, data: { work_time: number; travel_time: number; wait_time: number; memo?: string }) =>
+    client.put<AttendanceRecord>(`/attendance/${id}/time-classification`, data).then((r) => r.data),
 };
