@@ -131,6 +131,11 @@ export const WorkLog = () => {
   const defaultJobType: JobType = user?.role === 'material_manager' ? 'material' : 'engineer';
   const [jobType, setJobType] = useState<JobType>(defaultJobType);
 
+  const switchTab = (t: JobType) => {
+    setJobType(t);
+    reset({ date: format(now, 'yyyy-MM-dd'), job_type: t });
+  };
+
   const { data: logs = [] } = useQuery({
     queryKey: ['worklog', year, month],
     queryFn: () => worklogApi.list({ year, month }),
@@ -174,10 +179,10 @@ export const WorkLog = () => {
           <FormTitle>작업 입력</FormTitle>
 
           <TabRow>
-            <Tab active={jobType === 'engineer'} onClick={() => setJobType('engineer')}>
+            <Tab active={jobType === 'engineer'} onClick={() => switchTab('engineer')}>
               엔지니어
             </Tab>
-            <Tab active={jobType === 'material'} onClick={() => setJobType('material')}>
+            <Tab active={jobType === 'material'} onClick={() => switchTab('material')}>
               자재관리
             </Tab>
           </TabRow>
@@ -257,8 +262,8 @@ export const WorkLog = () => {
                 <tr>
                   <Th>날짜</Th>
                   <Th>직군</Th>
-                  <Th>작업</Th>
-                  <Th>이동</Th>
+                  <Th>작업 / 자재명</Th>
+                  <Th>이동 / 수량</Th>
                   <Th>대기</Th>
                   <Th>장소</Th>
                   <Th></Th>
