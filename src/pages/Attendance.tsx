@@ -162,8 +162,13 @@ export const Attendance = () => {
   const qc = useQueryClient();
   const [now, setNow] = useState(new Date());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
+    const tick = () => setNow(new Date());
+    let intervalId: ReturnType<typeof setInterval>;
+    const alignId = setTimeout(() => {
+      tick();
+      intervalId = setInterval(tick, 1000);
+    }, 1000 - new Date().getMilliseconds());
+    return () => { clearTimeout(alignId); clearInterval(intervalId); };
   }, []);
 
   const [tcTarget, setTcTarget] = useState<AttendanceRecord | null>(null);
