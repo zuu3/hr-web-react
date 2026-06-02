@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Clock, ClipboardList, Receipt, Car, LogOut,
 } from 'lucide-react';
-import { color, font, shadow, duration, easing } from '../../styles/tokens';
+import { color, font, shadow, duration, easing, bp } from '../../styles/tokens';
 import { useAuthStore } from '../../store/authStore';
 
 const nav = [
@@ -28,6 +28,9 @@ const Aside = styled.aside`
   left: 0;
   bottom: 0;
   z-index: 10;
+  ${bp.mobile} {
+    display: none;
+  }
 `;
 
 const Logo = styled.div`

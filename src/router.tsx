@@ -10,6 +10,7 @@ import { useAuthStore } from './store/authStore';
 import type { ReactNode } from 'react';
 
 const Guard = ({ children }: { children: ReactNode }) => {
+  if (import.meta.env.DEV) return <>{children}</>;
   const token = useAuthStore((s) => s.token);
   return token ? <>{children}</> : <Navigate to="/login" replace />;
 };

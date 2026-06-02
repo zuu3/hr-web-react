@@ -54,6 +54,11 @@ export const easing = {
   inOutCubic: 'cubic-bezier(0.65, 0, 0.35, 1)',
 } as const;
 
+export const bp = {
+  mobile: '@media (max-width: 767px)',
+  desktop: '@media (min-width: 768px)',
+} as const;
+
 export const font = {
   family: "'Pretendard Variable', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif",
   size: {

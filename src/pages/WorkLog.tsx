@@ -12,7 +12,7 @@ import { Button } from '../components/ui/Button';
 import { Input, InputWrapper, Label, ErrorText } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useAuthStore } from '../store/authStore';
-import { color, font } from '../styles/tokens';
+import { color, font, bp } from '../styles/tokens';
 
 const now = new Date();
 const year = now.getFullYear();
@@ -22,6 +22,10 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: 380px 1fr;
   gap: 24px;
+  ${bp.mobile} {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 `;
 
 const FormGrid = styled.div`
@@ -256,7 +260,7 @@ export const WorkLog = () => {
               <tbody>
                 {logs.map((l) => (
                   <tr key={l.id}>
-                    <Td>{format(new Date(l.date), 'M/d (EEE)', { locale: ko })}</Td>
+                    <Td>{format(new Date(l.date), 'M월 d일 (EEE)', { locale: ko })}</Td>
                     <Td>{jobLabel[l.job_type]}</Td>
                     <Td>{l.job_type === 'engineer' ? fmtMin(l.work_minutes) : (l.material_name ?? '—')}</Td>
                     <Td>{l.job_type === 'engineer' ? fmtMin(l.travel_minutes) : (l.quantity != null ? `${l.quantity}${l.unit ?? ''}` : '—')}</Td>

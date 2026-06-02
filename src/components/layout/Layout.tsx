@@ -1,7 +1,8 @@
 import styled from '@emotion/styled';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { color } from '../../styles/tokens';
+import { BottomNav } from './BottomNav';
+import { color, bp } from '../../styles/tokens';
 
 const Wrapper = styled.div`
   display: flex;
@@ -15,11 +16,17 @@ const Main = styled.main`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  ${bp.mobile} {
+    margin-left: 0;
+  }
 `;
 
 const Content = styled.div`
   flex: 1;
-  padding: 32px 32px 48px;
+  padding: 24px 32px 48px;
+  ${bp.mobile} {
+    padding: 16px 16px 80px;
+  }
 `;
 
 export const Layout = () => (
@@ -30,5 +37,6 @@ export const Layout = () => (
         <Outlet />
       </Content>
     </Main>
+    <BottomNav />
   </Wrapper>
 );

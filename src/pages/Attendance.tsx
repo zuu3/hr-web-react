@@ -10,7 +10,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { StatusBadge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
-import { color, font } from '../styles/tokens';
+import { color, font, bp } from '../styles/tokens';
 
 const now = new Date();
 const year = now.getFullYear();
@@ -21,6 +21,10 @@ const TopRow = styled.div`
   grid-template-columns: 320px 1fr;
   gap: 24px;
   margin-bottom: 24px;
+  ${bp.mobile} {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 `;
 
 const CheckCard = styled(Card)`
@@ -238,7 +242,7 @@ export const Attendance = () => {
                   const whStr = wh == null ? '—' : `${Math.floor(wh)}h ${Math.round((wh % 1) * 60)}m`;
                   return (
                     <tr key={r.id}>
-                      <Td>{format(new Date(r.date), 'M/d (EEE)', { locale: ko })}</Td>
+                      <Td>{format(new Date(r.date), 'M월 d일 (EEE)', { locale: ko })}</Td>
                       <Td>{r.check_in ?? '—'}</Td>
                       <Td>{r.check_out ?? '—'}</Td>
                       <Td>{whStr}</Td>

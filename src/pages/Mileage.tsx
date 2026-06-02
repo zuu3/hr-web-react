@@ -11,7 +11,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, InputWrapper, Label, ErrorText } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
-import { color, font, radius } from '../styles/tokens';
+import { color, font, radius, bp } from '../styles/tokens';
 
 const now = new Date();
 const year = now.getFullYear();
@@ -21,6 +21,10 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: 380px 1fr;
   gap: 24px;
+  ${bp.mobile} {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 `;
 
 const FormTitle = styled.h2`
@@ -283,7 +287,7 @@ export const Mileage = () => {
               <tbody>
                 {records.map((r) => (
                   <tr key={r.id}>
-                    <Td>{format(new Date(r.date), 'M/d (EEE)', { locale: ko })}</Td>
+                    <Td>{format(new Date(r.date), 'M월 d일 (EEE)', { locale: ko })}</Td>
                     <Td>{r.km}km</Td>
                     <Td>{r.oil_price.toLocaleString()}원/L</Td>
                     <Td>{r.amount.toLocaleString()}원</Td>

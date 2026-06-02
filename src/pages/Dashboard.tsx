@@ -11,7 +11,7 @@ import { DarkCard, StatLabel, StatValue, StatUnit } from '../components/ui/Card'
 import { Card } from '../components/ui/Card';
 import { StatusBadge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
-import { color, font } from '../styles/tokens';
+import { color, font, bp } from '../styles/tokens';
 
 const now = new Date();
 const year = now.getFullYear();
@@ -22,12 +22,20 @@ const Grid4 = styled.div`
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 32px;
+  ${bp.mobile} {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 `;
 
 const Row = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
+  ${bp.mobile} {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 `;
 
 const SectionTitle = styled.h2`
@@ -81,7 +89,7 @@ export const Dashboard = () => {
   });
 
   const chartData = records.slice(0, 14).map((r) => ({
-    day: format(new Date(r.date), 'd일'),
+    day: format(new Date(r.date), 'd일', { locale: ko }),
     hours: r.work_hours ?? 0,
   }));
 
@@ -177,7 +185,7 @@ export const Dashboard = () => {
               <tbody>
                 {records.slice(0, 8).map((r) => (
                   <tr key={r.id}>
-                    <Td>{format(new Date(r.date), 'M/d (EEE)', { locale: ko })}</Td>
+                    <Td>{format(new Date(r.date), 'M월 d일 (EEE)', { locale: ko })}</Td>
                     <Td>{r.check_in ?? '—'}</Td>
                     <Td>{r.check_out ?? '—'}</Td>
                     <Td><StatusBadge status={r.status} /></Td>

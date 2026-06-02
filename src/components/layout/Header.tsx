@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { color, font } from '../../styles/tokens';
+import { color, font, bp } from '../../styles/tokens';
 import { useAuthStore } from '../../store/authStore';
 
 const Bar = styled.header`
@@ -13,6 +13,10 @@ const Bar = styled.header`
   position: sticky;
   top: 0;
   z-index: 5;
+  ${bp.mobile} {
+    padding: 0 16px;
+    height: 56px;
+  }
 `;
 
 const PageTitle = styled.h1`
@@ -23,6 +27,9 @@ const PageTitle = styled.h1`
   margin: 0;
   letter-spacing: -0.5px;
   line-height: 36px;
+  ${bp.mobile} {
+    font-size: ${font.size.xl};
+  }
 `;
 
 const UserInfo = styled.div`
@@ -33,6 +40,9 @@ const UserInfo = styled.div`
   font-size: ${font.size.base};
   font-weight: ${font.weight.medium};
   color: ${color.ink[72]};
+  ${bp.mobile} {
+    font-size: ${font.size.sm};
+  }
 `;
 
 const RoleBadge = styled.span`
@@ -42,6 +52,7 @@ const RoleBadge = styled.span`
   background: ${color.ink[4]};
   padding: 2px 8px;
   border-radius: 4px;
+  ${bp.mobile} { display: none; }
 `;
 
 const roleLabel: Record<string, string> = {
