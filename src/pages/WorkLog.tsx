@@ -121,10 +121,6 @@ const DeleteBtn = styled.button`
   &:hover { color: ${color.status.error}; }
 `;
 
-const jobLabel: Record<JobType, string> = {
-  engineer: '엔지니어',
-  material: '자재관리',
-};
 
 export const WorkLog = () => {
   const user = useAuthStore((s) => s.user);
