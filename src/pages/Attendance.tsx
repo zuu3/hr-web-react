@@ -162,6 +162,7 @@ export const Attendance = () => {
   const qc = useQueryClient();
   const [tcTarget, setTcTarget] = useState<AttendanceRecord | null>(null);
   const [tcForm, setTcForm] = useState({ work_time: '', travel_time: '', wait_time: '', memo: '' });
+  const [showCheckOutConfirm, setShowCheckOutConfirm] = useState(false);
 
   const { data: today } = useQuery({
     queryKey: ['attendance', 'today'],
@@ -222,6 +223,26 @@ export const Attendance = () => {
   return (
     <>
       <Header title="출퇴근" />
+
+      {showCheckOutConfirm && (
+        <Modal onClick={() => setShowCheckOutConfirm(false)}>
+          <ModalBox onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>퇴근 처리</ModalTitle>
+            <div style={{ fontFamily: 'inherit', fontSize: 14, color: 'rgba(29,29,31,0.72)' }}>
+              퇴근하시겠습니까? 퇴근 후에는 수정할 수 없습니다.
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button
+                onClick={() => { setShowCheckOutConfirm(false); checkOutMut.mutate(); }}
+                disabled={checkOutMut.isPending}
+              >
+                {checkOutMut.isPending ? '처리 중...' : '퇴근'}
+              </Button>
+              <Button variant="secondary" onClick={() => setShowCheckOutConfirm(false)}>취소</Button>
+            </div>
+          </ModalBox>
+        </Modal>
+      )}
 
       {tcTarget && (
         <Modal onClick={() => setTcTarget(null)}>
@@ -293,7 +314,7 @@ export const Attendance = () => {
             </Button>
             <Button
               variant="secondary"
-              onClick={() => checkOutMut.mutate()}
+              onClick={() => setShowCheckOutConfirm(true)}
               disabled={!today?.check_in || !!today?.check_out || checkOutMut.isPending}
             >
               <MapPin size={14} strokeWidth={1.5} />
