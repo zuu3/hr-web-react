@@ -128,7 +128,7 @@ export const WorkLog = () => {
   const user = useAuthStore((s) => s.user);
   const qc = useQueryClient();
 
-  const defaultJobType: JobType = user?.role === 'material' ? 'material' : 'engineer';
+  const defaultJobType: JobType = user?.role === 'material_manager' ? 'material' : 'engineer';
   const [jobType, setJobType] = useState<JobType>(defaultJobType);
 
   const { data: logs = [] } = useQuery({

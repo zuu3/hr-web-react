@@ -57,7 +57,7 @@ const RoleBadge = styled.span`
 
 const roleLabel: Record<string, string> = {
   engineer: '엔지니어',
-  material: '자재관리',
+  material_manager: '자재관리',
   admin: '관리자',
 };
 
