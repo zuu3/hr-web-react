@@ -1,0 +1,193 @@
+import styled from '@emotion/styled';
+import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts';
+import { attendanceApi } from '../api/attendance';
+import { Header } from '../components/layout/Header';
+import { DarkCard, StatLabel, StatValue, StatUnit } from '../components/ui/Card';
+import { Card } from '../components/ui/Card';
+import { StatusBadge } from '../components/ui/Badge';
+import { EmptyState } from '../components/ui/EmptyState';
+import { color, font } from '../styles/tokens';
+
+const now = new Date();
+const year = now.getFullYear();
+const month = now.getMonth() + 1;
+
+const Grid4 = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+`;
+
+const Row = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+`;
+
+const SectionTitle = styled.h2`
+  font-family: ${font.family};
+  font-size: ${font.size.lg};
+  font-weight: ${font.weight.bold};
+  color: ${color.ink[96]};
+  margin: 0 0 16px;
+  letter-spacing: -0.3px;
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+`;
+
+const Th = styled.th`
+  font-family: ${font.family};
+  font-size: ${font.size.xs};
+  font-weight: ${font.weight.semibold};
+  color: ${color.ink[72]};
+  text-align: left;
+  padding: 10px 16px;
+  background: ${color.surface.subtle};
+  border-bottom: 1px solid ${color.ink[10]};
+  &:last-child { text-align: right; }
+`;
+
+const Td = styled.td`
+  font-family: ${font.family};
+  font-size: ${font.size.base};
+  font-weight: 500;
+  color: ${color.ink[100]};
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(29,29,31,0.06);
+  font-variant-numeric: tabular-nums;
+  &:last-child { text-align: right; }
+  tr:hover & { background: ${color.ink[4]}; }
+`;
+
+
+export const Dashboard = () => {
+  const { data: summary } = useQuery({
+    queryKey: ['attendance', 'summary', year, month],
+    queryFn: () => attendanceApi.summary({ year, month }),
+  });
+
+  const { data: records = [] } = useQuery({
+    queryKey: ['attendance', 'list', year, month],
+    queryFn: () => attendanceApi.list({ year, month }),
+  });
+
+  const chartData = records.slice(0, 14).map((r) => ({
+    day: format(new Date(r.date), 'd일'),
+    hours: r.work_hours ?? 0,
+  }));
+
+  return (
+    <>
+      <Header title={`${format(now, 'M월', { locale: ko })} 근태 현황`} />
+
+      <Grid4>
+        <DarkCard>
+          <StatLabel>총 근로시간</StatLabel>
+          <StatValue>
+            {summary ? Math.floor(summary.total_work_hours) : '—'}
+            <StatUnit>시간</StatUnit>
+          </StatValue>
+        </DarkCard>
+        <DarkCard>
+          <StatLabel>OT 시간</StatLabel>
+          <StatValue>
+            {summary ? Math.floor(summary.ot_hours) : '—'}
+            <StatUnit>시간</StatUnit>
+          </StatValue>
+        </DarkCard>
+        <DarkCard>
+          <StatLabel>야간 근무</StatLabel>
+          <StatValue>
+            {summary ? Math.floor(summary.night_hours) : '—'}
+            <StatUnit>시간</StatUnit>
+          </StatValue>
+        </DarkCard>
+        <DarkCard>
+          <StatLabel>휴일 근무</StatLabel>
+          <StatValue>
+            {summary ? Math.floor(summary.holiday_hours) : '—'}
+            <StatUnit>시간</StatUnit>
+          </StatValue>
+        </DarkCard>
+      </Grid4>
+
+      <Row>
+        <Card>
+          <SectionTitle>근로시간 추이</SectionTitle>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={chartData}>
+              <CartesianGrid stroke={color.ink[10]} vertical={false} />
+              <XAxis
+                dataKey="day"
+                tick={{ fontFamily: font.family, fontSize: 11, fill: color.ink[40] }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontFamily: font.family, fontSize: 11, fill: color.ink[40] }}
+                axisLine={false}
+                tickLine={false}
+                unit="h"
+              />
+              <Tooltip
+                contentStyle={{
+                  fontFamily: font.family,
+                  fontSize: 12,
+                  borderRadius: 8,
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                }}
+                formatter={(val) => [`${Number(val)}시간`, '근로시간']}
+              />
+              <Line
+                type="monotone"
+                dataKey="hours"
+                stroke={color.ink[100]}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, fill: color.ink[100] }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card>
+          <SectionTitle>최근 출퇴근</SectionTitle>
+          {records.length === 0 ? (
+            <EmptyState message="이번 달 근태 데이터가 없습니다." />
+          ) : (
+            <Table>
+              <thead>
+                <tr>
+                  <Th>날짜</Th>
+                  <Th>출근</Th>
+                  <Th>퇴근</Th>
+                  <Th>상태</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {records.slice(0, 8).map((r) => (
+                  <tr key={r.id}>
+                    <Td>{format(new Date(r.date), 'M/d (EEE)', { locale: ko })}</Td>
+                    <Td>{r.check_in ?? '—'}</Td>
+                    <Td>{r.check_out ?? '—'}</Td>
+                    <Td><StatusBadge status={r.status} /></Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Card>
+      </Row>
+    </>
+  );
+};
