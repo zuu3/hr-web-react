@@ -272,32 +272,57 @@ export const WorkLog = () => {
         </Card>
 
         <Card>
-          <SectionTitle>이번 달 작업 기록</SectionTitle>
+          <SectionTitle>이번 달 {jobType === 'engineer' ? '엔지니어' : '자재관리'} 기록</SectionTitle>
           {isLoading ? (
-            <Table><tbody><SkeletonTableRows rows={4} cols={7} /></tbody></Table>
-          ) : logs.length === 0 ? (
+            <Table><tbody><SkeletonTableRows rows={4} cols={jobType === 'engineer' ? 6 : 5} /></tbody></Table>
+          ) : logs.filter((l) => l.job_type === jobType).length === 0 ? (
             <EmptyState message="이번 달 작업 기록이 없습니다." />
-          ) : (
+          ) : jobType === 'engineer' ? (
             <Table>
               <thead>
                 <tr>
                   <Th>날짜</Th>
-                  <Th>직군</Th>
-                  <Th>작업 / 자재명</Th>
-                  <Th>이동 / 수량</Th>
+                  <Th>작업</Th>
+                  <Th>이동</Th>
                   <Th>대기</Th>
                   <Th>장소</Th>
                   <Th></Th>
                 </tr>
               </thead>
               <tbody>
-                {logs.map((l) => (
+                {logs.filter((l) => l.job_type === 'engineer').map((l) => (
                   <tr key={l.id}>
                     <Td>{format(new Date(l.date), 'M월 d일 (EEE)', { locale: ko })}</Td>
-                    <Td>{jobLabel[l.job_type]}</Td>
-                    <Td>{l.job_type === 'engineer' ? fmtMin(l.work_minutes) : (l.material_name ?? '—')}</Td>
-                    <Td>{l.job_type === 'engineer' ? fmtMin(l.travel_minutes) : (l.quantity != null ? `${l.quantity}${l.unit ?? ''}` : '—')}</Td>
-                    <Td>{l.job_type === 'engineer' ? fmtMin(l.wait_minutes) : '—'}</Td>
+                    <Td>{fmtMin(l.work_minutes)}</Td>
+                    <Td>{fmtMin(l.travel_minutes)}</Td>
+                    <Td>{fmtMin(l.wait_minutes)}</Td>
+                    <Td>{l.location ?? '—'}</Td>
+                    <Td>
+                      <DeleteBtn onClick={() => deleteMut.mutate(l.id)}>
+                        <Trash2 size={14} strokeWidth={1.5} />
+                      </DeleteBtn>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <Table>
+              <thead>
+                <tr>
+                  <Th>날짜</Th>
+                  <Th>자재명</Th>
+                  <Th>수량</Th>
+                  <Th>장소</Th>
+                  <Th></Th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.filter((l) => l.job_type === 'material').map((l) => (
+                  <tr key={l.id}>
+                    <Td>{format(new Date(l.date), 'M월 d일 (EEE)', { locale: ko })}</Td>
+                    <Td>{l.material_name ?? '—'}</Td>
+                    <Td>{l.quantity != null ? `${l.quantity}${l.unit ? ` ${l.unit}` : ''}` : '—'}</Td>
                     <Td>{l.location ?? '—'}</Td>
                     <Td>
                       <DeleteBtn onClick={() => deleteMut.mutate(l.id)}>
