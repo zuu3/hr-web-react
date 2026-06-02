@@ -32,11 +32,11 @@ const Dot = styled.span<{ dotColor: string }>`
 `;
 
 export const StatusBadge = ({ status }: { status: Status }) => {
-  const { dot, label } = statusMap[status];
+  const entry = statusMap[status] ?? { dot: color.ink[40], label: status };
   return (
     <Wrapper>
-      <Dot dotColor={dot} />
-      {label}
+      <Dot dotColor={entry.dot} />
+      {entry.label}
     </Wrapper>
   );
 };

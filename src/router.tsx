@@ -7,6 +7,7 @@ import { WorkLog } from './pages/WorkLog';
 import { Expense } from './pages/Expense';
 import { Mileage } from './pages/Mileage';
 import { useAuthStore } from './store/authStore';
+import { ErrorPage } from './pages/ErrorPage';
 import type { ReactNode } from 'react';
 
 const Guard = ({ children }: { children: ReactNode }) => {
@@ -19,10 +20,12 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/',
     element: <Guard><Layout /></Guard>,
+    errorElement: <ErrorPage />,
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <Dashboard /> },
