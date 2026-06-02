@@ -1,0 +1,27 @@
+{
+  "reference_id": "flex",
+  "description": "STK Engineering 사내 근태·지출 통합 관리 웹 시스템 (STK-HR). GPS 출퇴근, 작업/이동/대기 시간 입력, OT/야간/휴일 자동 집계, 마일리지 자동 계산(km*유가*0.1), 엑셀 다운로드. 직군별 입력(엔지니어/자재관리). 부산 해운대 소재 엔지니어링 회사 내부 B2B 툴.",
+  "mode": "inspired",
+  "delta_set": {
+    "axes": {
+      "density.shift": 1,
+      "radius.delta_px": 0
+    },
+    "voiceHints": [
+      "운영자 관점 유지",
+      "수치 정확성 강조",
+      "현장 작업자 눈높이",
+      "마침표형 단정 문장"
+    ],
+    "matchedKeywords": [
+      "HR",
+      "workforce management",
+      "data-dense",
+      "factual",
+      "trustworthy",
+      "Korean B2B internal tool"
+    ],
+    "warnings": []
+  },
+  "bootstrapped_at": "2026-06-02T00:00:00Z"
+}
