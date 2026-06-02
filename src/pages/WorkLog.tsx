@@ -133,7 +133,18 @@ export const WorkLog = () => {
 
   const switchTab = (t: JobType) => {
     setJobType(t);
-    reset({ date: format(now, 'yyyy-MM-dd'), job_type: t });
+    reset({
+      date: format(now, 'yyyy-MM-dd'),
+      job_type: t,
+      work_minutes: undefined,
+      travel_minutes: undefined,
+      wait_minutes: undefined,
+      material_name: '',
+      quantity: undefined,
+      unit: '',
+      location: '',
+      description: '',
+    });
   };
 
   const { data: logs = [] } = useQuery({
