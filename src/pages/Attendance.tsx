@@ -288,11 +288,11 @@ export const Attendance = () => {
           <CheckRow>
             <TimeItem>
               <TimeLabel>출근</TimeLabel>
-              <TimeVal>{today?.check_in ?? '—'}</TimeVal>
+              <TimeVal>{today?.check_in ? format(new Date(today.check_in), 'HH:mm') : '—'}</TimeVal>
             </TimeItem>
             <TimeItem>
               <TimeLabel>퇴근</TimeLabel>
-              <TimeVal>{today?.check_out ?? '—'}</TimeVal>
+              <TimeVal>{today?.check_out ? format(new Date(today.check_out), 'HH:mm') : '—'}</TimeVal>
             </TimeItem>
           </CheckRow>
 
@@ -340,8 +340,8 @@ export const Attendance = () => {
                   return (
                     <tr key={r.id}>
                       <Td>{format(new Date(r.date), 'M월 d일 (EEE)', { locale: ko })}</Td>
-                      <Td>{r.check_in ?? '—'}</Td>
-                      <Td>{r.check_out ?? '—'}</Td>
+                      <Td>{r.check_in ? format(new Date(r.check_in), 'HH:mm') : '—'}</Td>
+                      <Td>{r.check_out ? format(new Date(r.check_out), 'HH:mm') : '—'}</Td>
                       <Td>{whStr}</Td>
                       <Td><StatusBadge status={r.status} /></Td>
                       <Td>
