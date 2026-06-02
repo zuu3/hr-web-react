@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -15,9 +15,9 @@ import { color, font, bp } from '../styles/tokens';
 import { toast } from 'sonner';
 import { SkeletonTableRows } from '../components/ui/Skeleton';
 
-const now = new Date();
-const year = now.getFullYear();
-const month = now.getMonth() + 1;
+const _now = new Date();
+const year = _now.getFullYear();
+const month = _now.getMonth() + 1;
 
 const TopRow = styled.div`
   display: grid;
@@ -160,6 +160,12 @@ const ActionBtn = styled.button`
 
 export const Attendance = () => {
   const qc = useQueryClient();
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
   const [tcTarget, setTcTarget] = useState<AttendanceRecord | null>(null);
   const [tcForm, setTcForm] = useState({ work_time: '', travel_time: '', wait_time: '', memo: '' });
   const [showCheckOutConfirm, setShowCheckOutConfirm] = useState(false);
@@ -217,7 +223,7 @@ export const Attendance = () => {
     onError: () => toast.error('시간 분류 저장에 실패했습니다.'),
   });
 
-  const timeStr = format(now, 'HH:mm');
+  const timeStr = format(now, 'HH:mm:ss');
   const dateStr = format(now, 'yyyy년 M월 d일 (EEE)', { locale: ko });
 
   return (
