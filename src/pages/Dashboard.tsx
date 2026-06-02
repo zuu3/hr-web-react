@@ -6,8 +6,11 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { attendanceApi } from '../api/attendance';
+import { exportApi } from '../api/export';
+import { Download } from 'lucide-react';
+import { Button } from '../components/ui/Button';
 import { Header } from '../components/layout/Header';
-import { DarkCard, StatLabel, StatValue, StatUnit } from '../components/ui/Card';
+import { DarkCard, StatLabel, StatValue } from '../components/ui/Card';
 import { Card } from '../components/ui/Card';
 import { StatusBadge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -16,6 +19,18 @@ import { color, font, bp } from '../styles/tokens';
 const now = new Date();
 const year = now.getFullYear();
 const month = now.getMonth() + 1;
+
+const fmtHours = (h: number) => {
+  const totalMin = Math.round(h * 60);
+  const hrs = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  if (hrs === 0) return `${mins}분`;
+  if (mins === 0) return `${hrs}시간`;
+  return `${hrs}시간 ${mins}분`;
+};
+
+const fmtTime = (iso: string | null) =>
+  iso ? format(new Date(iso), 'HH:mm') : '—';
 
 const Grid4 = styled.div`
   display: grid;
@@ -100,37 +115,32 @@ export const Dashboard = () => {
       <Grid4>
         <DarkCard>
           <StatLabel>총 근로시간</StatLabel>
-          <StatValue>
-            {summary ? Math.floor(summary.total_work_hours) : '—'}
-            <StatUnit>시간</StatUnit>
-          </StatValue>
+          <StatValue>{summary ? fmtHours(summary.total_work_hours) : '—'}</StatValue>
         </DarkCard>
         <DarkCard>
           <StatLabel>OT 시간</StatLabel>
-          <StatValue>
-            {summary ? Math.floor(summary.ot_hours) : '—'}
-            <StatUnit>시간</StatUnit>
-          </StatValue>
+          <StatValue>{summary ? fmtHours(summary.ot_hours) : '—'}</StatValue>
         </DarkCard>
         <DarkCard>
           <StatLabel>야간 근무</StatLabel>
-          <StatValue>
-            {summary ? Math.floor(summary.night_hours) : '—'}
-            <StatUnit>시간</StatUnit>
-          </StatValue>
+          <StatValue>{summary ? fmtHours(summary.night_hours) : '—'}</StatValue>
         </DarkCard>
         <DarkCard>
           <StatLabel>휴일 근무</StatLabel>
-          <StatValue>
-            {summary ? Math.floor(summary.holiday_hours) : '—'}
-            <StatUnit>시간</StatUnit>
-          </StatValue>
+          <StatValue>{summary ? fmtHours(summary.holiday_hours) : '—'}</StatValue>
         </DarkCard>
       </Grid4>
 
       <Row>
         <Card>
-          <SectionTitle>근로시간 추이</SectionTitle>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <SectionTitle style={{ margin: 0 }}>근로시간 추이</SectionTitle>
+            <Button variant="secondary" size="sm" type="button"
+              onClick={() => exportApi.attendance({ year, month })}>
+              <Download size={13} strokeWidth={1.5} />
+              엑셀
+            </Button>
+          </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
               <CartesianGrid stroke={color.ink[10]} vertical={false} />
@@ -154,7 +164,7 @@ export const Dashboard = () => {
                   border: 'none',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
                 }}
-                formatter={(val) => [`${Number(val)}시간`, '근로시간']}
+                formatter={(val) => [fmtHours(Number(val)), '근로시간']}
               />
               <Line
                 type="monotone"
@@ -186,8 +196,8 @@ export const Dashboard = () => {
                 {records.slice(0, 8).map((r) => (
                   <tr key={r.id}>
                     <Td>{format(new Date(r.date), 'M월 d일 (EEE)', { locale: ko })}</Td>
-                    <Td>{r.check_in ?? '—'}</Td>
-                    <Td>{r.check_out ?? '—'}</Td>
+                    <Td>{fmtTime(r.check_in)}</Td>
+                    <Td>{fmtTime(r.check_out)}</Td>
                     <Td><StatusBadge status={r.status} /></Td>
                   </tr>
                 ))}

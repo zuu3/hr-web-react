@@ -156,7 +156,14 @@ export const WorkLog = () => {
     createMut.mutate({ ...data, job_type: jobType });
   };
 
-  const fmtMin = (m?: number) => m == null ? '—' : `${Math.floor(m / 60)}h ${m % 60}m`;
+  const fmtMin = (m?: number) => {
+    if (m == null) return '—';
+    const hrs = Math.floor(m / 60);
+    const mins = m % 60;
+    if (hrs === 0) return `${mins}분`;
+    if (mins === 0) return `${hrs}시간`;
+    return `${hrs}시간 ${mins}분`;
+  };
 
   return (
     <>

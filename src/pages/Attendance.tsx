@@ -336,7 +336,14 @@ export const Attendance = () => {
               <tbody>
                 {records.map((r) => {
                   const wh = r.work_hours;
-                  const whStr = wh == null ? '—' : `${Math.floor(wh)}h ${Math.round((wh % 1) * 60)}m`;
+                  const whStr = wh == null ? '—' : (() => {
+                    const totalMin = Math.round(wh * 60);
+                    const hrs = Math.floor(totalMin / 60);
+                    const mins = totalMin % 60;
+                    if (hrs === 0) return `${mins}분`;
+                    if (mins === 0) return `${hrs}시간`;
+                    return `${hrs}시간 ${mins}분`;
+                  })();
                   return (
                     <tr key={r.id}>
                       <Td>{format(new Date(r.date), 'M월 d일 (EEE)', { locale: ko })}</Td>
