@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Trash2, Download, Pencil } from 'lucide-react';
+import { toast } from 'sonner';
 import { expenseApi, type ExpensePayload, type ExpenseCategory, type ExpenseRecord } from '../api/expense';
 import { exportApi } from '../api/export';
 import { Header } from '../components/layout/Header';
@@ -12,6 +13,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, InputWrapper, Label, ErrorText, Select } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
+import { SkeletonTableRows } from '../components/ui/Skeleton';
 import { color, font, bp } from '../styles/tokens';
 
 const now = new Date();
@@ -128,7 +130,7 @@ export const Expense = () => {
   const qc = useQueryClient();
   const [editTarget, setEditTarget] = useState<ExpenseRecord | null>(null);
 
-  const { data: records = [] } = useQuery({
+  const { data: records = [], isLoading } = useQuery({
     queryKey: ['expense', year, month],
     queryFn: () => expenseApi.list({ year, month }),
   });
@@ -141,7 +143,9 @@ export const Expense = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['expense'] });
       reset({ date: format(now, 'yyyy-MM-dd'), category: 'transport' });
+      toast.success('저장되었습니다.');
     },
+    onError: () => toast.error('저장에 실패했습니다. 다시 시도해 주세요.'),
   });
 
   const updateMut = useMutation({
@@ -151,12 +155,18 @@ export const Expense = () => {
       qc.invalidateQueries({ queryKey: ['expense'] });
       setEditTarget(null);
       reset({ date: format(now, 'yyyy-MM-dd'), category: 'transport' });
+      toast.success('수정되었습니다.');
     },
+    onError: () => toast.error('수정에 실패했습니다. 다시 시도해 주세요.'),
   });
 
   const deleteMut = useMutation({
     mutationFn: expenseApi.delete,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['expense'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['expense'] });
+      toast.success('삭제되었습니다.');
+    },
+    onError: () => toast.error('삭제에 실패했습니다.'),
   });
 
   const total = records.reduce((s, r) => s + r.amount, 0);
@@ -240,8 +250,15 @@ export const Expense = () => {
               </InputWrapper>
 
               <InputWrapper>
-                <Label htmlFor="description">메모 (선택)</Label>
-                <Input id="description" type="text" placeholder="메모 입력" {...register('description')} />
+                <Label htmlFor="description">메모</Label>
+                <Input
+                  id="description"
+                  type="text"
+                  placeholder="메모 입력"
+                  hasError={!!errors.description}
+                  {...register('description', { required: '메모를 입력해 주세요.' })}
+                />
+                {errors.description && <ErrorText>{errors.description.message}</ErrorText>}
               </InputWrapper>
 
               <Button type="submit" disabled={isSubmitting || isPending} style={{ marginTop: 4 }}>
@@ -260,7 +277,9 @@ export const Expense = () => {
             </Button>
           </SectionHeader>
 
-          {records.length === 0 ? (
+          {isLoading ? (
+            <Table><tbody><SkeletonTableRows rows={4} cols={5} /></tbody></Table>
+          ) : records.length === 0 ? (
             <EmptyState message="이번 달 지출 내역이 없습니다." />
           ) : (
             <Table>

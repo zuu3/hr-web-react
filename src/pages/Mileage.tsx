@@ -4,14 +4,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Trash2, Download } from 'lucide-react';
+import { utils, writeFileXLSX } from 'xlsx';
 import { mileageApi, calcMileage, type MileagePayload } from '../api/mileage';
-import { exportApi } from '../api/export';
 import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, InputWrapper, Label, ErrorText } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
 import { color, font, radius, bp } from '../styles/tokens';
+import { toast } from 'sonner';
+import { SkeletonTableRows } from '../components/ui/Skeleton';
 
 const now = new Date();
 const year = now.getFullYear();
@@ -130,7 +132,7 @@ const DeleteBtn = styled.button`
 export const Mileage = () => {
   const qc = useQueryClient();
 
-  const { data: records = [] } = useQuery({
+  const { data: records = [], isLoading } = useQuery({
     queryKey: ['mileage', year, month],
     queryFn: () => mileageApi.list({ year, month }),
   });
@@ -151,21 +153,35 @@ export const Mileage = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['mileage'] });
       reset({ date: format(now, 'yyyy-MM-dd'), km: undefined, oil_price: 1750 });
+      toast.success('저장되었습니다.');
     },
+    onError: () => toast.error('저장에 실패했습니다.'),
   });
 
   const deleteMut = useMutation({
     mutationFn: mileageApi.delete,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['mileage'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['mileage'] });
+      toast.success('삭제되었습니다.');
+    },
+    onError: () => toast.error('삭제에 실패했습니다.'),
   });
 
   const total = records.reduce((s, r) => s + r.amount, 0);
 
   const handleExport = () => {
-    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-    exportApi.expenses({ start_date: startDate, end_date: endDate });
+    const rows = records.map((r) => ({
+      날짜: r.date,
+      'km': r.km,
+      '유가(원/L)': r.oil_price,
+      '정산금액(원)': r.amount,
+      '계산식': `${r.km}km × ${r.oil_price.toLocaleString()}원 × 0.1 = ${r.amount.toLocaleString()}원`,
+      메모: r.description ?? '',
+    }));
+    const ws = utils.json_to_sheet(rows);
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, '마일리지');
+    writeFileXLSX(wb, `마일리지_${year}${String(month).padStart(2, '0')}.xlsx`);
   };
 
   return (
@@ -262,7 +278,9 @@ export const Mileage = () => {
             </Button>
           </SectionHeader>
 
-          {records.length === 0 ? (
+          {isLoading ? (
+            <Table><tbody><SkeletonTableRows rows={4} cols={6} /></tbody></Table>
+          ) : records.length === 0 ? (
             <EmptyState message="이번 달 마일리지 내역이 없습니다." />
           ) : (
             <Table>

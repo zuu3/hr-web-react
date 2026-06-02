@@ -12,6 +12,8 @@ import { Input, InputWrapper, Label } from '../components/ui/Input';
 import { StatusBadge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { color, font, bp } from '../styles/tokens';
+import { toast } from 'sonner';
+import { SkeletonTableRows } from '../components/ui/Skeleton';
 
 const now = new Date();
 const year = now.getFullYear();
@@ -155,33 +157,18 @@ const ActionBtn = styled.button`
   &:hover { color: ${color.ink[100]}; }
 `;
 
-const Toast = styled.div<{ type: 'success' | 'error' }>`
-  font-family: ${font.family};
-  font-size: ${font.size.base};
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: ${({ type }) => type === 'success' ? 'rgba(52,199,89,0.08)' : 'rgba(255,59,48,0.08)'};
-  color: ${({ type }) => type === 'success' ? color.status.success : color.status.error};
-  font-weight: 500;
-`;
 
 export const Attendance = () => {
   const qc = useQueryClient();
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [tcTarget, setTcTarget] = useState<AttendanceRecord | null>(null);
   const [tcForm, setTcForm] = useState({ work_time: '', travel_time: '', wait_time: '', memo: '' });
-
-  const showToast = (msg: string, type: 'success' | 'error') => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const { data: today } = useQuery({
     queryKey: ['attendance', 'today'],
     queryFn: attendanceApi.today,
   });
 
-  const { data: records = [] } = useQuery({
+  const { data: records = [], isLoading } = useQuery({
     queryKey: ['attendance', 'list', year, month],
     queryFn: () => attendanceApi.list({ year, month }),
   });
@@ -201,9 +188,9 @@ export const Attendance = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['attendance'] });
-      showToast('출근 기록이 저장되었습니다.', 'success');
+      toast.success('출근 기록이 저장되었습니다.');
     },
-    onError: () => showToast('출근 기록에 실패했습니다.', 'error'),
+    onError: () => toast.error('출근 기록에 실패했습니다.'),
   });
 
   const checkOutMut = useMutation({
@@ -213,9 +200,9 @@ export const Attendance = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['attendance'] });
-      showToast('퇴근 기록이 저장되었습니다.', 'success');
+      toast.success('퇴근 기록이 저장되었습니다.');
     },
-    onError: () => showToast('퇴근 기록에 실패했습니다.', 'error'),
+    onError: () => toast.error('퇴근 기록에 실패했습니다.'),
   });
 
   const tcMut = useMutation({
@@ -224,9 +211,9 @@ export const Attendance = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['attendance'] });
       setTcTarget(null);
-      showToast('시간 분류가 저장되었습니다.', 'success');
+      toast.success('시간 분류가 저장되었습니다.');
     },
-    onError: () => showToast('시간 분류 저장에 실패했습니다.', 'error'),
+    onError: () => toast.error('시간 분류 저장에 실패했습니다.'),
   });
 
   const timeStr = format(now, 'HH:mm');
@@ -296,8 +283,6 @@ export const Attendance = () => {
             </TimeItem>
           </CheckRow>
 
-          {toast && <Toast type={toast.type}>{toast.msg}</Toast>}
-
           <CheckRow>
             <Button
               onClick={() => checkInMut.mutate()}
@@ -319,7 +304,9 @@ export const Attendance = () => {
 
         <Card>
           <SectionTitle>이번 달 출퇴근 기록</SectionTitle>
-          {records.length === 0 ? (
+          {isLoading ? (
+            <Table><tbody><SkeletonTableRows rows={4} cols={6} /></tbody></Table>
+          ) : records.length === 0 ? (
             <EmptyState message="이번 달 근태 데이터가 없습니다." />
           ) : (
             <Table>

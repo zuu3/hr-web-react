@@ -15,6 +15,7 @@ import { Card } from '../components/ui/Card';
 import { StatusBadge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { color, font, bp } from '../styles/tokens';
+import { SkeletonTableRows } from '../components/ui/Skeleton';
 
 const now = new Date();
 const year = now.getFullYear();
@@ -93,12 +94,12 @@ const Td = styled.td`
 
 
 export const Dashboard = () => {
-  const { data: summary } = useQuery({
+  const { data: summary, isLoading: summaryLoading } = useQuery({
     queryKey: ['attendance', 'summary', year, month],
     queryFn: () => attendanceApi.summary({ year, month }),
   });
 
-  const { data: records = [] } = useQuery({
+  const { data: records = [], isLoading: recordsLoading } = useQuery({
     queryKey: ['attendance', 'list', year, month],
     queryFn: () => attendanceApi.list({ year, month }),
   });
@@ -115,19 +116,19 @@ export const Dashboard = () => {
       <Grid4>
         <DarkCard>
           <StatLabel>총 근로시간</StatLabel>
-          <StatValue>{summary ? fmtHours(summary.total_work_hours) : '—'}</StatValue>
+          <StatValue>{summaryLoading ? '...' : summary ? fmtHours(summary.total_work_hours) : '—'}</StatValue>
         </DarkCard>
         <DarkCard>
           <StatLabel>OT 시간</StatLabel>
-          <StatValue>{summary ? fmtHours(summary.ot_hours) : '—'}</StatValue>
+          <StatValue>{summaryLoading ? '...' : summary ? fmtHours(summary.ot_hours) : '—'}</StatValue>
         </DarkCard>
         <DarkCard>
           <StatLabel>야간 근무</StatLabel>
-          <StatValue>{summary ? fmtHours(summary.night_hours) : '—'}</StatValue>
+          <StatValue>{summaryLoading ? '...' : summary ? fmtHours(summary.night_hours) : '—'}</StatValue>
         </DarkCard>
         <DarkCard>
           <StatLabel>휴일 근무</StatLabel>
-          <StatValue>{summary ? fmtHours(summary.holiday_hours) : '—'}</StatValue>
+          <StatValue>{summaryLoading ? '...' : summary ? fmtHours(summary.holiday_hours) : '—'}</StatValue>
         </DarkCard>
       </Grid4>
 
@@ -180,7 +181,9 @@ export const Dashboard = () => {
 
         <Card>
           <SectionTitle>최근 출퇴근</SectionTitle>
-          {records.length === 0 ? (
+          {recordsLoading ? (
+            <Table><tbody><SkeletonTableRows rows={4} cols={4} /></tbody></Table>
+          ) : records.length === 0 ? (
             <EmptyState message="이번 달 근태 데이터가 없습니다." />
           ) : (
             <Table>

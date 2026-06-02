@@ -13,6 +13,8 @@ import { Input, InputWrapper, Label, ErrorText } from '../components/ui/Input';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useAuthStore } from '../store/authStore';
 import { color, font, bp } from '../styles/tokens';
+import { toast } from 'sonner';
+import { SkeletonTableRows } from '../components/ui/Skeleton';
 
 const now = new Date();
 const year = now.getFullYear();
@@ -147,25 +149,31 @@ export const WorkLog = () => {
     });
   };
 
-  const { data: logs = [] } = useQuery({
+  const { data: logs = [], isLoading } = useQuery({
     queryKey: ['worklog', year, month],
     queryFn: () => worklogApi.list({ year, month }),
   });
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } =
-    useForm<WorkLogPayload>({ defaultValues: { date: format(now, 'yyyy-MM-dd'), job_type: jobType } });
+    useForm<WorkLogPayload>({ defaultValues: { date: format(now, 'yyyy-MM-dd'), job_type: jobType }, shouldUnregister: true });
 
   const createMut = useMutation({
     mutationFn: worklogApi.create,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['worklog'] });
       reset({ date: format(now, 'yyyy-MM-dd'), job_type: jobType });
+      toast.success('저장되었습니다.');
     },
+    onError: () => toast.error('저장에 실패했습니다.'),
   });
 
   const deleteMut = useMutation({
     mutationFn: worklogApi.delete,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['worklog'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['worklog'] });
+      toast.success('삭제되었습니다.');
+    },
+    onError: () => toast.error('삭제에 실패했습니다.'),
   });
 
   const onSubmit = (data: WorkLogPayload) => {
@@ -265,7 +273,9 @@ export const WorkLog = () => {
 
         <Card>
           <SectionTitle>이번 달 작업 기록</SectionTitle>
-          {logs.length === 0 ? (
+          {isLoading ? (
+            <Table><tbody><SkeletonTableRows rows={4} cols={7} /></tbody></Table>
+          ) : logs.length === 0 ? (
             <EmptyState message="이번 달 작업 기록이 없습니다." />
           ) : (
             <Table>
