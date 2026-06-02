@@ -13,6 +13,9 @@ jobs:
           fetch-depth: 0
 
       - name: Push to personal fork
+        env:
+          TOKEN: ${{ secrets.PERSONAL_REPO_TOKEN }}
         run: |
-          git remote add personal https://x-access-token:${{ secrets.PERSONAL_REPO_TOKEN }}@github.com/zuu3/hr-web-react.git
+          echo "Token prefix: ${TOKEN:0:4}"
+          git remote add personal https://x-access-token:${TOKEN}@github.com/zuu3/hr-web-react.git
           git push personal main --force
