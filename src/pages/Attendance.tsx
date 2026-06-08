@@ -18,6 +18,7 @@ import { SkeletonTableRows } from '../components/ui/Skeleton';
 const _now = new Date();
 const year = _now.getFullYear();
 const month = _now.getMonth() + 1;
+const todayDate = format(_now, 'yyyy-MM-dd');
 
 const TopRow = styled.div`
   display: grid;
@@ -173,12 +174,15 @@ export const Attendance = () => {
 
   const [tcTarget, setTcTarget] = useState<AttendanceRecord | null>(null);
   const [tcForm, setTcForm] = useState({ work_time: '', travel_time: '', wait_time: '', memo: '' });
+  const [showCheckInConfirm, setShowCheckInConfirm] = useState(false);
   const [showCheckOutConfirm, setShowCheckOutConfirm] = useState(false);
 
-  const { data: today } = useQuery({
-    queryKey: ['attendance', 'today'],
+  const { data: todayRaw } = useQuery({
+    queryKey: ['attendance', 'today', todayDate],
     queryFn: attendanceApi.today,
+    staleTime: 0,
   });
+  const today = todayRaw?.date === todayDate ? todayRaw : null;
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['attendance', 'list', year, month],
@@ -234,6 +238,26 @@ export const Attendance = () => {
   return (
     <>
       <Header title="출퇴근" />
+
+      {showCheckInConfirm && (
+        <Modal onClick={() => setShowCheckInConfirm(false)}>
+          <ModalBox onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>출근 처리</ModalTitle>
+            <div style={{ fontFamily: 'inherit', fontSize: 14, color: 'rgba(29,29,31,0.72)' }}>
+              출근하시겠습니까?
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button
+                onClick={() => { setShowCheckInConfirm(false); checkInMut.mutate(); }}
+                disabled={checkInMut.isPending}
+              >
+                {checkInMut.isPending ? '처리 중...' : '출근'}
+              </Button>
+              <Button variant="secondary" onClick={() => setShowCheckInConfirm(false)}>취소</Button>
+            </div>
+          </ModalBox>
+        </Modal>
+      )}
 
       {showCheckOutConfirm && (
         <Modal onClick={() => setShowCheckOutConfirm(false)}>
@@ -317,7 +341,7 @@ export const Attendance = () => {
 
           <CheckRow>
             <Button
-              onClick={() => checkInMut.mutate()}
+              onClick={() => setShowCheckInConfirm(true)}
               disabled={!!today?.check_in || checkInMut.isPending}
             >
               <MapPin size={14} strokeWidth={1.5} />
