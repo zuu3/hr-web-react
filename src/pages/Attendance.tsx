@@ -182,7 +182,7 @@ export const Attendance = () => {
     queryFn: attendanceApi.today,
     staleTime: 0,
   });
-  const today = todayRaw?.date === todayDate ? todayRaw : null;
+  const today = todayRaw?.date?.startsWith(todayDate) ? todayRaw : null;
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['attendance', 'list', year, month],
