@@ -206,7 +206,15 @@ export const Attendance = () => {
       qc.invalidateQueries({ queryKey: ['attendance'] });
       toast.success('출근 기록이 저장되었습니다.');
     },
-    onError: () => toast.error('출근 기록에 실패했습니다.'),
+    onError: (err: unknown) => {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 400) {
+        qc.invalidateQueries({ queryKey: ['attendance'] });
+        toast.error('이미 출근 처리되었습니다.');
+      } else {
+        toast.error('출근 기록에 실패했습니다.');
+      }
+    },
   });
 
   const checkOutMut = useMutation({
@@ -218,7 +226,15 @@ export const Attendance = () => {
       qc.invalidateQueries({ queryKey: ['attendance'] });
       toast.success('퇴근 기록이 저장되었습니다.');
     },
-    onError: () => toast.error('퇴근 기록에 실패했습니다.'),
+    onError: (err: unknown) => {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 400) {
+        qc.invalidateQueries({ queryKey: ['attendance'] });
+        toast.error('이미 퇴근 처리되었습니다.');
+      } else {
+        toast.error('퇴근 기록에 실패했습니다.');
+      }
+    },
   });
 
   const tcMut = useMutation({
