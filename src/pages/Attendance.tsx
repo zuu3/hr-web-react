@@ -177,12 +177,11 @@ export const Attendance = () => {
   const [showCheckInConfirm, setShowCheckInConfirm] = useState(false);
   const [showCheckOutConfirm, setShowCheckOutConfirm] = useState(false);
 
-  const { data: todayRaw } = useQuery({
+  const { data: today } = useQuery({
     queryKey: ['attendance', 'today', todayDate],
     queryFn: attendanceApi.today,
     staleTime: 0,
   });
-  const today = todayRaw?.date?.startsWith(todayDate) ? todayRaw : null;
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['attendance', 'list', year, month],
