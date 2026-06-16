@@ -7,7 +7,7 @@ import type { AdminAttendanceRecord, AdminExpenseRecord, AdminMileageRecord, Adm
 import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Select, Label, InputWrapper } from '../components/ui/Input';
+import { Input, Select, Label, InputWrapper } from '../components/ui/Input';
 import { StatusBadge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SkeletonTableRows } from '../components/ui/Skeleton';
@@ -117,6 +117,7 @@ export const Admin = () => {
   const [year, setYear] = useState(_now.getFullYear());
   const [month, setMonth] = useState(_now.getMonth() + 1);
   const [userId, setUserId] = useState<number | undefined>(undefined);
+  const [search, setSearch] = useState('');
   const [tab, setTab] = useState<Tab>('attendance');
 
   const { data: usersRaw } = useQuery({
@@ -165,7 +166,20 @@ export const Admin = () => {
     : tab === 'mileage' ? loadingMileage
     : loadingWorklog;
 
-  const getUserName = (userId: number) => users.find(u => u.id === userId)?.name ?? String(userId);
+  const getUserName = (uid: number) => users.find(u => u.id === uid)?.name ?? String(uid);
+
+  const q = search.trim().toLowerCase();
+  const matchSearch = (fields: (string | null | undefined)[]) =>
+    !q || fields.some(f => f?.toLowerCase().includes(q));
+
+  const filteredAttendance = attendance.filter(r =>
+    matchSearch([getUserName(r.user_id), r.status, r.date]));
+  const filteredExpenses = expenses.filter(r =>
+    matchSearch([getUserName(r.user_id), categoryLabel[r.category], r.description, r.date]));
+  const filteredMileage = mileage.filter(r =>
+    matchSearch([getUserName(r.user_id), r.description, r.date]));
+  const filteredWorklog = worklog.filter(r =>
+    matchSearch([getUserName(r.user_id), r.description, r.material_name, r.location, r.date]));
 
   const fmtTime = (v: string | null) => v ? format(new Date(v), 'HH:mm') : '—';
   const fmtDate = (v: string) => format(new Date(v), 'MM/dd');
@@ -200,6 +214,14 @@ export const Admin = () => {
               ))}
             </Select>
           </FilterItem>
+          <FilterItem style={{ minWidth: 180, flex: '1 1 180px' }}>
+            <Label>검색</Label>
+            <Input
+              placeholder="이름, 날짜, 내용 검색"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </FilterItem>
         </Filters>
 
         <TabRow>
@@ -232,9 +254,9 @@ export const Admin = () => {
                 </tr>
               </thead>
               <tbody>
-                {isLoading ? <SkeletonTableRows rows={8} cols={8} /> : attendance.length === 0 ? (
+                {isLoading ? <SkeletonTableRows rows={8} cols={8} /> : filteredAttendance.length === 0 ? (
                   <tr><td colSpan={8}><EmptyState message="근태 데이터가 없습니다." /></td></tr>
-                ) : attendance.map((r: AdminAttendanceRecord) => (
+                ) : filteredAttendance.map((r: AdminAttendanceRecord) => (
                   <Tr key={r.id}>
                     <Td>{getUserName(r.user_id)}</Td>
                     <TdMuted>{fmtDate(r.date)}</TdMuted>
@@ -262,9 +284,9 @@ export const Admin = () => {
                 </tr>
               </thead>
               <tbody>
-                {isLoading ? <SkeletonTableRows rows={8} cols={5} /> : expenses.length === 0 ? (
+                {isLoading ? <SkeletonTableRows rows={8} cols={5} /> : filteredExpenses.length === 0 ? (
                   <tr><td colSpan={5}><EmptyState message="지출 데이터가 없습니다." /></td></tr>
-                ) : expenses.map((r: AdminExpenseRecord) => (
+                ) : filteredExpenses.map((r: AdminExpenseRecord) => (
                   <Tr key={r.id}>
                     <Td>{getUserName(r.user_id)}</Td>
                     <TdMuted>{fmtDate(r.date)}</TdMuted>
@@ -290,9 +312,9 @@ export const Admin = () => {
                 </tr>
               </thead>
               <tbody>
-                {isLoading ? <SkeletonTableRows rows={8} cols={6} /> : mileage.length === 0 ? (
+                {isLoading ? <SkeletonTableRows rows={8} cols={6} /> : filteredMileage.length === 0 ? (
                   <tr><td colSpan={6}><EmptyState message="마일리지 데이터가 없습니다." /></td></tr>
-                ) : mileage.map((r: AdminMileageRecord) => (
+                ) : filteredMileage.map((r: AdminMileageRecord) => (
                   <Tr key={r.id}>
                     <Td>{getUserName(r.user_id)}</Td>
                     <TdMuted>{fmtDate(r.date)}</TdMuted>
@@ -320,9 +342,9 @@ export const Admin = () => {
                 </tr>
               </thead>
               <tbody>
-                {isLoading ? <SkeletonTableRows rows={8} cols={7} /> : worklog.length === 0 ? (
+                {isLoading ? <SkeletonTableRows rows={8} cols={7} /> : filteredWorklog.length === 0 ? (
                   <tr><td colSpan={7}><EmptyState message="업무일지 데이터가 없습니다." /></td></tr>
-                ) : worklog.map((r: AdminWorkLogEntry) => (
+                ) : filteredWorklog.map((r: AdminWorkLogEntry) => (
                   <Tr key={r.id}>
                     <Td>{getUserName(r.user_id)}</Td>
                     <TdMuted>{fmtDate(r.date)}</TdMuted>
