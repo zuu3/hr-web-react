@@ -6,6 +6,7 @@ import { Attendance } from './pages/Attendance';
 import { WorkLog } from './pages/WorkLog';
 import { Expense } from './pages/Expense';
 import { Mileage } from './pages/Mileage';
+import { Admin } from './pages/Admin';
 import { useAuthStore } from './store/authStore';
 import { ErrorPage } from './pages/ErrorPage';
 import type { ReactNode } from 'react';
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
       { path: 'work-log', element: <WorkLog /> },
       { path: 'expense', element: <Expense /> },
       { path: 'mileage', element: <Mileage /> },
+      { path: 'admin', element: <Admin /> },
     ],
   },
   { path: '*', element: <Navigate to="/dashboard" replace /> },

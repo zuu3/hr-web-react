@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Clock, ClipboardList, Receipt, Car, LogOut,
+  LayoutDashboard, Clock, ClipboardList, Receipt, Car, LogOut, ShieldCheck,
 } from 'lucide-react';
 import { color, font, shadow, duration, easing, bp } from '../../styles/tokens';
 import { useAuthStore } from '../../store/authStore';
@@ -13,6 +13,8 @@ const nav = [
   { to: '/expense', icon: Receipt, label: '지출 관리' },
   { to: '/mileage', icon: Car, label: '마일리지' },
 ];
+
+const adminNav = { to: '/admin', icon: ShieldCheck, label: '관리자' };
 
 const Aside = styled.aside`
   width: 240px;
@@ -98,7 +100,8 @@ const LogoutBtn = styled.button`
 
 export const Sidebar = () => {
   const navigate = useNavigate();
-  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const { clearAuth, user } = useAuthStore((s) => ({ clearAuth: s.clearAuth, user: s.user }));
+  const isAdmin = user?.role === 'admin';
 
   const logout = () => {
     clearAuth();
@@ -117,6 +120,14 @@ export const Sidebar = () => {
             </NavItem>
           </li>
         ))}
+        {isAdmin && (
+          <li>
+            <NavItem to={adminNav.to}>
+              <adminNav.icon size={16} strokeWidth={1.5} />
+              {adminNav.label}
+            </NavItem>
+          </li>
+        )}
       </NavList>
       <LogoutBtn onClick={logout}>
         <LogOut size={16} strokeWidth={1.5} />

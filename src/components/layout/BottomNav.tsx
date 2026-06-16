@@ -1,7 +1,8 @@
 import styled from '@emotion/styled';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Clock, ClipboardList, Receipt, Car } from 'lucide-react';
+import { LayoutDashboard, Clock, ClipboardList, Receipt, Car, ShieldCheck } from 'lucide-react';
 import { color, font, bp } from '../../styles/tokens';
+import { useAuthStore } from '../../store/authStore';
 
 const nav = [
   { to: '/dashboard', icon: LayoutDashboard, label: '대시보드' },
@@ -46,13 +47,24 @@ const Item = styled(NavLink)`
   }
 `;
 
-export const BottomNav = () => (
-  <Bar>
-    {nav.map(({ to, icon: Icon, label }) => (
-      <Item key={to} to={to}>
-        <Icon size={20} strokeWidth={1.5} />
-        {label}
-      </Item>
-    ))}
-  </Bar>
-);
+export const BottomNav = () => {
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'admin';
+
+  return (
+    <Bar>
+      {nav.map(({ to, icon: Icon, label }) => (
+        <Item key={to} to={to}>
+          <Icon size={20} strokeWidth={1.5} />
+          {label}
+        </Item>
+      ))}
+      {isAdmin && (
+        <Item to="/admin">
+          <ShieldCheck size={20} strokeWidth={1.5} />
+          관리자
+        </Item>
+      )}
+    </Bar>
+  );
+};
