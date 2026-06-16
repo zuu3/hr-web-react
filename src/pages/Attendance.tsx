@@ -177,16 +177,13 @@ export const Attendance = () => {
   const [showCheckInConfirm, setShowCheckInConfirm] = useState(false);
   const [showCheckOutConfirm, setShowCheckOutConfirm] = useState(false);
 
-  const { data: today } = useQuery({
-    queryKey: ['attendance', 'today', todayDate],
-    queryFn: attendanceApi.today,
-    staleTime: 0,
-  });
-
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['attendance', 'list', year, month],
     queryFn: () => attendanceApi.list({ year, month }),
+    staleTime: 0,
   });
+
+  const today = records.find((r) => r.date.startsWith(todayDate)) ?? null;
 
   const getLocation = () =>
     new Promise<{ latitude: number; longitude: number }>((resolve, _reject) =>
