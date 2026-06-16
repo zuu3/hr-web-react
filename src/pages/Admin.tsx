@@ -119,37 +119,42 @@ export const Admin = () => {
   const [userId, setUserId] = useState<number | undefined>(undefined);
   const [tab, setTab] = useState<Tab>('attendance');
 
-  const { data: users = [] } = useQuery({
+  const { data: usersRaw } = useQuery({
     queryKey: ['admin', 'users'],
     queryFn: adminApi.users,
     staleTime: 60_000,
   });
+  const users = usersRaw ?? [];
 
   const params = { year, month, ...(userId ? { user_id: userId } : {}) };
 
-  const { data: attendance = [], isLoading: loadingAttendance } = useQuery({
+  const { data: attendanceRaw, isLoading: loadingAttendance } = useQuery({
     queryKey: ['admin', 'attendance', year, month, userId],
     queryFn: () => adminApi.attendance(params),
     enabled: tab === 'attendance',
   });
+  const attendance = attendanceRaw ?? [];
 
-  const { data: expenses = [], isLoading: loadingExpense } = useQuery({
+  const { data: expensesRaw, isLoading: loadingExpense } = useQuery({
     queryKey: ['admin', 'expense', year, month, userId],
     queryFn: () => adminApi.expenses(params),
     enabled: tab === 'expense',
   });
+  const expenses = expensesRaw ?? [];
 
-  const { data: mileage = [], isLoading: loadingMileage } = useQuery({
+  const { data: mileageRaw, isLoading: loadingMileage } = useQuery({
     queryKey: ['admin', 'mileage', year, month, userId],
     queryFn: () => adminApi.mileage(params),
     enabled: tab === 'mileage',
   });
+  const mileage = mileageRaw ?? [];
 
-  const { data: worklog = [], isLoading: loadingWorklog } = useQuery({
+  const { data: worklogRaw, isLoading: loadingWorklog } = useQuery({
     queryKey: ['admin', 'worklog', year, month, userId],
     queryFn: () => adminApi.worklog(params),
     enabled: tab === 'worklog',
   });
+  const worklog = worklogRaw ?? [];
 
   const years = Array.from({ length: 3 }, (_, i) => _now.getFullYear() - i);
 
