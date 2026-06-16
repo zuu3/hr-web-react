@@ -135,6 +135,7 @@ export const Mileage = () => {
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['mileage', year, month],
     queryFn: () => mileageApi.list({ year, month }),
+    select: (d) => d ?? [],
   });
 
   const {

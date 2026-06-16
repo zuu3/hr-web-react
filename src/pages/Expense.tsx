@@ -133,6 +133,7 @@ export const Expense = () => {
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['expense', year, month],
     queryFn: () => expenseApi.list({ year, month }),
+    select: (d) => d ?? [],
   });
 
   const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } =
