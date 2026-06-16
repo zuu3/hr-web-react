@@ -1,4 +1,5 @@
-import styled, { keyframes } from '@emotion/styled';
+import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 import { color, font } from '../../styles/tokens';
 
 type Status = 'present' | 'absent' | 'late' | 'half' | 'working' | 'pending' | 'approved' | 'rejected';
