@@ -11,7 +11,7 @@ import { Select, Label, InputWrapper } from '../components/ui/Input';
 import { StatusBadge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SkeletonTableRows } from '../components/ui/Skeleton';
-import { color, font, shadow, bp } from '../styles/tokens';
+import { color, font, shadow } from '../styles/tokens';
 import type { ExpenseCategory } from '../api/expense';
 
 const _now = new Date();
@@ -112,12 +112,6 @@ const Tr = styled.tr`
   &:hover td { background: rgba(29,29,31,0.02); }
 `;
 
-const ColGroup = styled.div`
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  ${bp.mobile} { gap: 4px; }
-`;
 
 export const Admin = () => {
   const [year, setYear] = useState(_now.getFullYear());
