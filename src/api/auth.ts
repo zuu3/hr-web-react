@@ -13,6 +13,8 @@ export interface User {
   email: string;
   role: 'engineer' | 'material_manager' | 'admin';
   department?: string;
+  position?: string;
+  is_active?: boolean;
 }
 
 export const authApi = {

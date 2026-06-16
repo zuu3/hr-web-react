@@ -163,6 +163,8 @@ export const Admin = () => {
     : tab === 'mileage' ? loadingMileage
     : loadingWorklog;
 
+  const getUserName = (userId: number) => users.find(u => u.id === userId)?.name ?? String(userId);
+
   const fmtTime = (v: string | null) => v ? format(new Date(v), 'HH:mm') : '—';
   const fmtDate = (v: string) => format(new Date(v), 'MM/dd');
   const fmtNum = (v: number | null | undefined) => v != null ? v.toLocaleString() : '—';
@@ -232,7 +234,7 @@ export const Admin = () => {
                   <tr><td colSpan={8}><EmptyState message="근태 데이터가 없습니다." /></td></tr>
                 ) : attendance.map((r: AdminAttendanceRecord) => (
                   <Tr key={r.id}>
-                    <Td>{r.user?.name ?? String(r.user_id ?? '—')}</Td>
+                    <Td>{getUserName(r.user_id)}</Td>
                     <TdMuted>{fmtDate(r.date)}</TdMuted>
                     <Td>{fmtTime(r.check_in)}</Td>
                     <Td>{fmtTime(r.check_out)}</Td>
@@ -262,7 +264,7 @@ export const Admin = () => {
                   <tr><td colSpan={5}><EmptyState message="지출 데이터가 없습니다." /></td></tr>
                 ) : expenses.map((r: AdminExpenseRecord) => (
                   <Tr key={r.id}>
-                    <Td>{r.user?.name ?? String(r.user_id ?? '—')}</Td>
+                    <Td>{getUserName(r.user_id)}</Td>
                     <TdMuted>{fmtDate(r.date)}</TdMuted>
                     <Td>{categoryLabel[r.category] ?? r.category}</Td>
                     <TdRight>{fmtNum(r.amount)}원</TdRight>
@@ -290,7 +292,7 @@ export const Admin = () => {
                   <tr><td colSpan={6}><EmptyState message="마일리지 데이터가 없습니다." /></td></tr>
                 ) : mileage.map((r: AdminMileageRecord) => (
                   <Tr key={r.id}>
-                    <Td>{r.user?.name ?? String(r.user_id ?? '—')}</Td>
+                    <Td>{getUserName(r.user_id)}</Td>
                     <TdMuted>{fmtDate(r.date)}</TdMuted>
                     <TdRight>{r.km}km</TdRight>
                     <TdRight>{fmtNum(r.oil_price)}원/L</TdRight>
@@ -320,7 +322,7 @@ export const Admin = () => {
                   <tr><td colSpan={7}><EmptyState message="업무일지 데이터가 없습니다." /></td></tr>
                 ) : worklog.map((r: AdminWorkLogEntry) => (
                   <Tr key={r.id}>
-                    <Td>{r.user?.name ?? String(r.user_id ?? '—')}</Td>
+                    <Td>{getUserName(r.user_id)}</Td>
                     <TdMuted>{fmtDate(r.date)}</TdMuted>
                     <Td>{jobTypeLabel[r.job_type] ?? r.job_type}</Td>
                     <TdRight>{r.work_minutes != null ? `${r.work_minutes}분` : '—'}</TdRight>

@@ -5,10 +5,10 @@ import type { MileageRecord } from './mileage';
 import type { WorkLogEntry } from './worklog';
 import type { User } from './auth';
 
-export interface AdminAttendanceRecord extends AttendanceRecord { user: User }
-export interface AdminExpenseRecord extends ExpenseRecord { user: User }
-export interface AdminMileageRecord extends MileageRecord { user: User }
-export interface AdminWorkLogEntry extends WorkLogEntry { user: User }
+export interface AdminAttendanceRecord extends AttendanceRecord { user_id: number }
+export interface AdminExpenseRecord extends ExpenseRecord { user_id: number }
+export interface AdminMileageRecord extends MileageRecord { user_id: number }
+export interface AdminWorkLogEntry extends WorkLogEntry { user_id: number }
 
 export const adminApi = {
   attendance: (params: { year: number; month: number; user_id?: number }) =>
