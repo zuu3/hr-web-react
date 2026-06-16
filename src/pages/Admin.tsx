@@ -217,7 +217,7 @@ export const Admin = () => {
           <FilterItem style={{ minWidth: 180, flex: '1 1 180px' }}>
             <Label>검색</Label>
             <Input
-              placeholder="이름, 날짜, 내용 검색"
+              placeholder="이름 · 2026-06 · 06-16 · 내용"
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
