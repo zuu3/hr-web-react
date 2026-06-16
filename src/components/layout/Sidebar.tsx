@@ -100,7 +100,8 @@ const LogoutBtn = styled.button`
 
 export const Sidebar = () => {
   const navigate = useNavigate();
-  const { clearAuth, user } = useAuthStore((s) => ({ clearAuth: s.clearAuth, user: s.user }));
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const user = useAuthStore((s) => s.user);
   const isAdmin = user?.role === 'admin';
 
   const logout = () => {
