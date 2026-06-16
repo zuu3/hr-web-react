@@ -18,7 +18,6 @@ import { SkeletonTableRows } from '../components/ui/Skeleton';
 const _now = new Date();
 const year = _now.getFullYear();
 const month = _now.getMonth() + 1;
-const todayDate = format(_now, 'yyyy-MM-dd');
 
 const TopRow = styled.div`
   display: grid;
@@ -162,8 +161,15 @@ const ActionBtn = styled.button`
 export const Attendance = () => {
   const qc = useQueryClient();
   const [now, setNow] = useState(new Date());
+  const [todayDate, setTodayDate] = useState(() => format(new Date(), 'yyyy-MM-dd'));
+
   useEffect(() => {
-    const tick = () => setNow(new Date());
+    const tick = () => {
+      const next = new Date();
+      setNow(next);
+      const d = format(next, 'yyyy-MM-dd');
+      setTodayDate(prev => prev !== d ? d : prev);
+    };
     let intervalId: ReturnType<typeof setInterval>;
     const alignId = setTimeout(() => {
       tick();

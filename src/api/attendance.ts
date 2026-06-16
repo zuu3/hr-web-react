@@ -9,7 +9,7 @@ export interface AttendanceRecord {
   ot_hours: number | null;
   night_hours: number | null;
   holiday_hours: number | null;
-  status: 'present' | 'absent' | 'late' | 'half';
+  status: 'present' | 'absent' | 'late' | 'half' | 'working';
   location_in?: string;
   location_out?: string;
 }

@@ -1,13 +1,14 @@
 import styled from '@emotion/styled';
 import { color, font } from '../../styles/tokens';
 
-type Status = 'present' | 'absent' | 'late' | 'half' | 'pending' | 'approved' | 'rejected';
+type Status = 'present' | 'absent' | 'late' | 'half' | 'working' | 'pending' | 'approved' | 'rejected';
 
 const statusMap: Record<Status, { dot: string; label: string }> = {
   present: { dot: color.status.success, label: '정상' },
   absent: { dot: color.status.error, label: '결근' },
   late: { dot: color.status.warning, label: '지각' },
   half: { dot: color.status.info, label: '반차' },
+  working: { dot: color.status.info, label: '근무중' },
   pending: { dot: color.status.warning, label: '대기중' },
   approved: { dot: color.status.success, label: '승인' },
   rejected: { dot: color.status.error, label: '거절' },

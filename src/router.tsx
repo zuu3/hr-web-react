@@ -12,7 +12,6 @@ import { ErrorPage } from './pages/ErrorPage';
 import type { ReactNode } from 'react';
 
 const Guard = ({ children }: { children: ReactNode }) => {
-  return <>{children}</>;
   const token = useAuthStore((s) => s.token);
   return token ? <>{children}</> : <Navigate to="/login" replace />;
 };
