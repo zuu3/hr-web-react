@@ -102,7 +102,7 @@ export const Dashboard = () => {
   const { data: records = [], isLoading: recordsLoading } = useQuery({
     queryKey: ['attendance', 'list', year, month],
     queryFn: () => attendanceApi.list({ year, month }),
-    select: (d) => d ?? [],
+    select: (d) => Array.isArray(d) ? d : [],
   });
 
   const chartData = records.slice(0, 14).map((r) => ({

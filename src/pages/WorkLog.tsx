@@ -148,7 +148,7 @@ export const WorkLog = () => {
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ['worklog', year, month],
     queryFn: () => worklogApi.list({ year, month }),
-    select: (d) => d ?? [],
+    select: (d) => Array.isArray(d) ? d : [],
   });
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } =

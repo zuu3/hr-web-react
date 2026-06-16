@@ -186,7 +186,7 @@ export const Attendance = () => {
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['attendance', 'list', year, month],
     queryFn: () => attendanceApi.list({ year, month }),
-    select: (d) => d ?? [],
+    select: (d) => Array.isArray(d) ? d : [],
   });
 
   const getLocation = () =>

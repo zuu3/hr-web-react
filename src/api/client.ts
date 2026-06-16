@@ -22,7 +22,16 @@ const processQueue = (error: unknown, token: string | null) => {
 };
 
 client.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    const body = res.data;
+    if (body && typeof body === 'object' && body.message === 'success' && 'data' in body) {
+      const inner = body.data;
+      res.data = inner != null && typeof inner === 'object' && Array.isArray(inner.items)
+        ? inner.items
+        : inner;
+    }
+    return res;
+  },
   async (err) => {
     const original = err.config;
     if (err.response?.status === 401 && !original._retry) {
